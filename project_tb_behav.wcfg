@@ -10,15 +10,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="999998fs"></ZoomStartTime>
-      <ZoomEndTime time="1000002fs"></ZoomEndTime>
-      <Cursor1Time time="1000000fs"></Cursor1Time>
+      <ZoomStartTime time="662174fs"></ZoomStartTime>
+      <ZoomEndTime time="732775fs"></ZoomEndTime>
+      <Cursor1Time time="562374fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="226"></NameColumnWidth>
-      <ValueColumnWidth column_width="120"></ValueColumnWidth>
+      <ValueColumnWidth column_width="112"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="18" />
+   <WVObjectSize size="26" />
    <wvobject fp_name="/project_tb/tb_done" type="logic">
       <obj_property name="ElementShortName">tb_done</obj_property>
       <obj_property name="ObjectShortName">tb_done</obj_property>
@@ -67,13 +67,33 @@
       <obj_property name="ElementShortName">address_to_be_encoded[15:0]</obj_property>
       <obj_property name="ObjectShortName">address_to_be_encoded[15:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/project_tb/UUT/cycle" type="array">
-      <obj_property name="ElementShortName">cycle[16:0]</obj_property>
-      <obj_property name="ObjectShortName">cycle[16:0]</obj_property>
+   <wvobject fp_name="/project_tb/UUT/o_address" type="array">
+      <obj_property name="ElementShortName">o_address[15:0]</obj_property>
+      <obj_property name="ObjectShortName">o_address[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/project_tb/UUT/columns" type="array">
+      <obj_property name="ElementShortName">columns[7:0]</obj_property>
+      <obj_property name="ObjectShortName">columns[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/project_tb/UUT/rows" type="array">
+      <obj_property name="ElementShortName">rows[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rows[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/project_tb/UUT/counter" type="array">
+      <obj_property name="ElementShortName">counter[14:0]</obj_property>
+      <obj_property name="ObjectShortName">counter[14:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/project_tb/UUT/columns_to_decrease" type="array">
       <obj_property name="ElementShortName">columns_to_decrease[7:0]</obj_property>
       <obj_property name="ObjectShortName">columns_to_decrease[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/project_tb/UUT/rows_to_decrease" type="array">
+      <obj_property name="ElementShortName">rows_to_decrease[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rows_to_decrease[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/project_tb/UUT/current_pixel" type="array">
+      <obj_property name="ElementShortName">current_pixel[7:0]</obj_property>
+      <obj_property name="ObjectShortName">current_pixel[7:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/project_tb/UUT/max_pixel" type="array">
       <obj_property name="ElementShortName">max_pixel[7:0]</obj_property>
@@ -83,6 +103,14 @@
       <obj_property name="ElementShortName">min_pixel[7:0]</obj_property>
       <obj_property name="ObjectShortName">min_pixel[7:0]</obj_property>
    </wvobject>
+   <wvobject fp_name="/project_tb/UUT/max_counter" type="array">
+      <obj_property name="ElementShortName">max_counter[14:0]</obj_property>
+      <obj_property name="ObjectShortName">max_counter[14:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/project_tb/UUT/starting_address_for_equalized" type="array">
+      <obj_property name="ElementShortName">starting_address_for_equalized[15:0]</obj_property>
+      <obj_property name="ObjectShortName">starting_address_for_equalized[15:0]</obj_property>
+   </wvobject>
    <wvobject fp_name="/project_tb/UUT/delta" type="array">
       <obj_property name="ElementShortName">delta[7:0]</obj_property>
       <obj_property name="ObjectShortName">delta[7:0]</obj_property>
@@ -90,5 +118,9 @@
    <wvobject fp_name="/project_tb/UUT/shift" type="array">
       <obj_property name="ElementShortName">shift[7:0]</obj_property>
       <obj_property name="ObjectShortName">shift[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/project_tb/UUT/tmp_pixel" type="array">
+      <obj_property name="ElementShortName">tmp_pixel[7:0]</obj_property>
+      <obj_property name="ObjectShortName">tmp_pixel[7:0]</obj_property>
    </wvobject>
 </wave_config>
