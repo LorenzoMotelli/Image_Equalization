@@ -27,7 +27,7 @@ entity project_reti_logiche is
 end project_reti_logiche;   
 
 architecture Behavioral of project_reti_logiche is
-   type state_type is (IDLE, WAIT_COLUMNS, SET_COLUMNS, WAIT_ROWS, SET_ROWS, LOAD_ADDRESS, WAIT_ADDRESS, SET_CURRENT_PIXEL, SET_MAX_AND_MIN, SET_DELTA, LOAD_PIXEL, WAIT_PIXEL, SET_PIXEL, EQUALIZE_PIXEL, SET_NEW_PIXEL, LOAD_STORE, WAIT_STORE, STORE, DONE);
+   type state_type is (IDLE, WAIT_COLUMNS, SET_COLUMNS, WAIT_ROWS, SET_ROWS, LOAD_ADDRESS, WAIT_ADDRESS, SET_CURRENT_PIXEL, SET_MAX_AND_MIN, SET_DELTA, SET_SHIFT, LOAD_PIXEL, WAIT_PIXEL, SET_PIXEL, EQUALIZE_PIXEL, SET_NEW_PIXEL, LOAD_STORE, WAIT_STORE, STORE, DONE);
    
    --internal registers
    signal current_state : state_type; --the state of the FSM
@@ -41,6 +41,7 @@ architecture Behavioral of project_reti_logiche is
    signal max_pixel : unsigned (7 downto 0) := "00000000";  --the max value of the pixel in the imagine, starts at 0 to be incremented
    signal min_pixel : unsigned (7 downto 0) := "11111111";  --the min value of the pixel in the imagine, starts at 255 to be decreased
    signal delta : unsigned (7 downto 0);    --delta value equals to MAX-MIN
+   signal shift : unsigned (3 downto 0);
    signal tmp_pixel : unsigned (7 downto 0); --the temporarly value of the pixel
    signal tmp_pixel_16bit : unsigned (15 downto 0) := "0000000000000000"; --signal to convert the pixel from 8 bit to 16 for the shift
    signal shift_result : unsigned (15 downto 0) := "0000000000000000"; --signal to check if in the shift there is an overflow
@@ -119,15 +120,15 @@ begin
                         min_pixel <= current_pixel;
                     end if;
                     current_state <= LOAD_ADDRESS;
+                    counter <= counter + "0000000000000001";
                     if(columns_to_decrease = 0) then --the row is over
                        rows <= rows - "0000001";
                        if(rows = "0000001") then --the image is over (the program read one more line)
-                            max_counter <= counter;
+                            max_counter <= counter + "0000000000000001"; --it save one step before
                             counter <= "0000000000000000";
                             current_state <= SET_DELTA;
                        else --new line, reset of number of pixel to read
                             columns_to_decrease <= columns;
-                            counter <= counter + "0000000000000001";
                         end if;
                     end if;
                     
@@ -135,7 +136,29 @@ begin
                  when SET_DELTA =>
                     starting_address_for_equalized <= "000000000000010" + max_counter;
                     delta <= unsigned(max_pixel - min_pixel);
-                    current_state <= LOAD_PIXEL;
+                    current_state <= SET_SHIFT;
+                    
+                 when SET_SHIFT =>
+                    if("00000000" = delta) then
+                        shift <= "1000";
+                    elsif("00000001" <= delta AND delta < "00000011") then
+                        shift <= "0111";
+                    elsif("00000011" = delta AND delta < "00000111") then
+                        shift <= "0110";
+                    elsif("00000111" <= delta AND delta < "00001111") then
+                        shift <= "0101";
+                    elsif("00001111" <= delta AND delta < "0001111") then
+                        shift <= "0100";
+                    elsif("0001111" <= delta AND delta < "00111111") then
+                        shift <= "0011";
+                    elsif("00111111" <= delta AND delta < "01111111") then
+                        shift <= "0010";
+                    elsif("01111111" <= delta AND delta < "11111111") then
+                        shift <= "0001";
+                    else
+                        shift <= "0000";    
+                    end if;
+                    current_state <= LOAD_PIXEL;   
                     
                  --load address to read the value of the pixel    
                  when LOAD_PIXEL =>
@@ -154,23 +177,26 @@ begin
                  --resize the value from 8 to 16 bit, shift of the value and check if there is overflow   
                  when EQUALIZE_PIXEL =>
                     tmp_pixel_16bit <= resize(unsigned(tmp_pixel), tmp_pixel_16bit'length);
-                    if("00000000" = delta) then
-                        shift_result <= shift_left(tmp_pixel_16bit, 8);
-                    elsif("00000001" <= delta AND delta < "00000011") then
-                        shift_result <= shift_left(tmp_pixel_16bit, 7);
-                    elsif("00000011" = delta AND delta < "00000111") then
-                        shift_result <= shift_left(tmp_pixel_16bit, 6);
-                    elsif("00000111" <= delta AND delta < "00001111") then
-                        shift_result <= shift_left(tmp_pixel_16bit, 5);
-                    elsif("00001111" <= delta AND delta < "0001111") then
-                        shift_result <= shift_left(tmp_pixel_16bit, 4);
-                    elsif("0001111" <= delta AND delta < "00111111") then
-                        shift_result <= shift_left(tmp_pixel_16bit, 3);
-                    elsif("00111111" <= delta AND delta < "01111111") then
-                        shift_result <= shift_left(tmp_pixel_16bit, 2);
-                    elsif("01111111" <= delta AND delta < "11111111") then
-                        shift_result <= shift_left(tmp_pixel_16bit, 1);    
-                    end if;
+                    case shift is
+                        when "1000" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 8);
+                        when "0111" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 7);
+                        when "0110" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 6);
+                        when "0101" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 5);
+                        when "0100" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 4);
+                        when "0011" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 3);
+                        when "0010" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 2);    
+                        when "0001" =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 1);
+                        when others =>
+                            shift_result <= shift_left(tmp_pixel_16bit, 0);
+                        end case;
                     current_state <= SET_NEW_PIXEL;
                     
                  --set the value of the equalized pixel
@@ -182,12 +208,11 @@ begin
                       else
                          current_pixel <= shift_result(7 downto 0);
                       end if;
-                      
-                      --o_address <= starting_address_for_equalized + counter;       
+                      o_address <= starting_address_for_equalized + counter;       
                       current_state <= LOAD_STORE;
                  
                  when LOAD_STORE =>
-                    o_address <= starting_address_for_equalized + counter;
+                    --o_address <= starting_address_for_equalized + counter;
                     o_data <= std_logic_vector(current_pixel);
                     current_state <= WAIT_STORE;
                     
