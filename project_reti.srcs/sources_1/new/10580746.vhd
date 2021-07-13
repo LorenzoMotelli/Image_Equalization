@@ -27,7 +27,7 @@ entity project_reti_logiche is
 end project_reti_logiche;   
 
 architecture Behavioral of project_reti_logiche is
-   type state_type is (IDLE, WAIT_COLUMNS, SET_COLUMNS, WAIT_ROWS, SET_ROWS, LOAD_ADDRESS, WAIT_ADDRESS, SET_CURRENT_PIXEL, SET_MAX_AND_MIN, SET_DELTA, SET_SHIFT, LOAD_PIXEL, WAIT_PIXEL, SET_PIXEL, EQUALIZE_PIXEL, SET_NEW_PIXEL, LOAD_STORE, WAIT_STORE, STORE, DONE);
+   type state_type is (IDLE, WAIT_COLUMNS, SET_COLUMNS, WAIT_ROWS, SET_ROWS, LOAD_ADDRESS, WAIT_ADDRESS, SET_CURRENT_PIXEL, SET_MAX_AND_MIN, SET_DELTA, SET_SHIFT, LOAD_PIXEL, WAIT_PIXEL, SET_PIXEL, EQUALIZE_PIXEL, WAIT_EQUALIZATION, SET_NEW_PIXEL, LOAD_STORE, WAIT_STORE, STORE, DONE, DO_SHIFT);
    
    --internal registers
    signal current_state : state_type; --the state of the FSM
@@ -45,6 +45,7 @@ architecture Behavioral of project_reti_logiche is
    signal tmp_pixel : unsigned (7 downto 0); --the temporarly value of the pixel
    signal tmp_pixel_16bit : unsigned (15 downto 0) := "0000000000000000"; --signal to convert the pixel from 8 bit to 16 for the shift
    signal shift_result : unsigned (15 downto 0) := "0000000000000000"; --signal to check if in the shift there is an overflow
+   signal shift_done : unsigned (3 downto 0) := "0000";
    
 begin
     equalization : process (i_clk, i_rst, i_start)
@@ -108,11 +109,15 @@ begin
                  --wait that the address is actually loaded   
                  when WAIT_ADDRESS =>
                     columns_to_decrease <= columns_to_decrease - "00000001";
-                    current_state <= SET_MAX_AND_MIN;
+                    current_state <= SET_CURRENT_PIXEL;
+                    
+                 when SET_CURRENT_PIXEL =>
+                     current_pixel <= unsigned(i_data);
+                     current_state <= SET_MAX_AND_MIN; 
                 
                  --set the max and min value of pixel if necessary, if the image is totally read it is possible to set the delta    
                  when SET_MAX_AND_MIN =>
-                    current_pixel <= unsigned(i_data);
+                    --current_pixel <= unsigned(i_data);
                     if(max_pixel < current_pixel) then
                         max_pixel <= current_pixel;
                     end if;
@@ -177,6 +182,9 @@ begin
                  --resize the value from 8 to 16 bit, shift of the value and check if there is overflow   
                  when EQUALIZE_PIXEL =>
                     tmp_pixel_16bit <= resize(unsigned(tmp_pixel), tmp_pixel_16bit'length);
+                    current_state <= DO_SHIFT;
+                    
+                  when DO_SHIFT =>
                     case shift is
                         when "1000" =>
                             shift_result <= shift_left(tmp_pixel_16bit, 8);
@@ -191,14 +199,22 @@ begin
                         when "0011" =>
                             shift_result <= shift_left(tmp_pixel_16bit, 3);
                         when "0010" =>
-                            shift_result <= shift_left(tmp_pixel_16bit, 2);    
+                            shift_result <= shift_left(tmp_pixel_16bit, 2);
                         when "0001" =>
                             shift_result <= shift_left(tmp_pixel_16bit, 1);
                         when others =>
                             shift_result <= shift_left(tmp_pixel_16bit, 0);
                         end case;
-                    current_state <= SET_NEW_PIXEL;
-                    
+                        current_state <= WAIT_EQUALIZATION;
+                        
+                 when WAIT_EQUALIZATION =>
+                    if("1000" = shift_done)then
+                      current_state <= SET_NEW_PIXEL;
+                    else
+                        shift_done <= shift_done + "0001";
+                        current_state <= WAIT_EQUALIZATION;
+                    end if;             
+                 
                  --set the value of the equalized pixel
                  when SET_NEW_PIXEL =>
                       --there is overflow
@@ -213,6 +229,7 @@ begin
                  
                  when LOAD_STORE =>
                     --o_address <= starting_address_for_equalized + counter;
+                    shift_done <= "0000";
                     o_data <= std_logic_vector(current_pixel);
                     current_state <= WAIT_STORE;
                     
