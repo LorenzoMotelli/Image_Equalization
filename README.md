@@ -1,4 +1,4 @@
-# Image_Equalization
+## Image_Equalization
 Progetto Reti logiche 2020-2021
 
 # Overview
