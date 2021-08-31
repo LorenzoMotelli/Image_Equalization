@@ -12,4 +12,4 @@ The module is an implementation of an equalizator of BW image, with max dimensio
 
 ## Documents
 * specification
-* report
+* ../report https://github.com/LorenzoMotelli/Image_Equalization/blob/main/Documents/Report%20(ITA).pdf
