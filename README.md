@@ -11,5 +11,5 @@ The module is an implementation of an equalizator of BW image, with max dimensio
 - optimization of number of states and clock cycles
 
 ## Documents
-* specification
-* ../report https://github.com/LorenzoMotelli/Image_Equalization/blob/main/Documents/Report%20(ITA).pdf
+* [specification]()
+* [report](https://github.com/LorenzoMotelli/Image_Equalization/blob/main/Documents/Report%20(ITA).pdf)
