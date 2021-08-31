@@ -1,6 +1,0 @@
-# compile vhdl design source files
-vhdl xil_defaultlib  \
-"../../../../../../Desktop/IngInf - Triennale/Terzo Anno/Reti Logiche/Progetto Reti logiche/test_finale.vhd" \
-
-# Do not sort compile order
-nosort
